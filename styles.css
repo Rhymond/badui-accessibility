@@ -1,0 +1,11 @@
+.wrapper {
+    width: 100vw;
+    height: 100vh;
+}
+
+.wrapper > div {
+    line-height: 0;
+    font-size: 28px;
+    position: absolute;
+    opacity: 0;
+}
