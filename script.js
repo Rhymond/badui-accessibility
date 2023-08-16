@@ -1,17 +1,12 @@
 const letters = document.querySelectorAll(".wrapper > div");
-let sounds = [];
+const input = document.querySelector(".form > input");
+const sounds = [];
+
 const random = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-letters.forEach(l => {
-  l.style.top = random(0, 100) + '%';
-  l.style.left = random(0, 100) + '%';
-
-  sounds[l.innerHTML] = new Audio('sounds/' + l.innerHTML + '.mp3');
-})
-
-function logslider(position) {
+const logslider = (position) => {
   // position will be between 0 and 100
   var minp = 0;
   var maxp = 100;
@@ -23,9 +18,28 @@ function logslider(position) {
   var scale = (maxv-minv) / (maxp-minp);
 
   return Math.exp(minv + scale*(position-minp));
-}
+};
 
-document.addEventListener('click', (e) => {
+const shuffleLetters = () => {
+  letters.forEach(l => {
+    l.style.top = random(10, 90) + '%';
+    l.style.left = random(10, 90) + '%';
+  });
+}
+shuffleLetters();
+
+letters.forEach(l => {
+  sounds[l.innerHTML] = new Audio('sounds/' + l.innerHTML + '.mp3');
+})
+
+const play = (letter, volume) => {
+  sounds[letter].currentTime = 0;
+  sounds[letter].volume = volume;
+  sounds[letter].play();
+} 
+
+const wrapper = document.querySelector(".wrapper");
+wrapper.addEventListener('click', (e) => {
   let distances = [];
   letters.forEach(l => {
     const rect = l.getBoundingClientRect();
@@ -33,20 +47,33 @@ document.addEventListener('click', (e) => {
       l.innerHTML,
       Math.sqrt(Math.pow(e.clientX - rect.x, 2) + Math.pow(e.clientY - rect.y, 2))
     ]);
-  })
+  });
+
+  if (distances.length < 1) {
+    return;
+  }
 
   distances.sort((a, b) => a[1] - b[1])
 
+  if (distances[0][1] < 40) {
+    play(distances[0][0], 1);
+    return;
+  }
+
   const max = 500;
-  distances.forEach(d => {
+  for (let i = 0; i < distances.length; i++) {
+    const d = distances[i];
     if (d[1] < max) {
-      sounds[d[0]].currentTime = 0;
-      sounds[d[0]].volume = logslider(100 - ((d[1] * 100) / max)) / 100;
-      sounds[d[0]].play();
+      play(d[0], logslider(100 - ((d[1] * 100) / max)) / 100)
     }
-  })
-  
-  // const audio = new Audio('sounds/b.mp3');
-  // audio.volume
-  // audio.play();
+  }
 })
+
+letters.forEach(l => {
+  l.addEventListener("click", (e) => {
+    setTimeout(() => {
+      input.value = input.value + e.target.innerHTML;
+      shuffleLetters();
+    }, 300);
+  });
+});
